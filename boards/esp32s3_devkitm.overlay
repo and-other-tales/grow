@@ -1,0 +1,103 @@
+/*
+ * ESP32S3 DevkitM board overlay for GrowSense
+ */
+
+/ {
+    chosen {
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+    };
+    
+    /* DHT22 Sensor */
+    dht22: dht22 {
+        compatible = "aosong,dht";
+        status = "okay";
+        dio-gpios = <&gpio0 21 GPIO_ACTIVE_HIGH>;
+        dht22;
+    };
+    
+    /* Soil Moisture Sensor */
+    soil_moisture_sensor: soil_moisture_sensor {
+        compatible = "voltage-divider";
+        io-channels = <&adc1 0>;
+        status = "okay";
+    };
+    
+    /* Light Sensor */
+    light_sensor: light_sensor {
+        compatible = "voltage-divider";
+        io-channels = <&adc1 1>;
+        status = "okay";
+    };
+    
+    /* Air Movement Sensor */
+    air_sensor: air_sensor {
+        compatible = "voltage-divider";
+        io-channels = <&adc1 2>;
+        status = "okay";
+    };
+};
+
+&wifi {
+    status = "okay";
+};
+
+&uart0 {
+    status = "okay";
+    current-speed = <115200>;
+};
+
+&gpio0 {
+    status = "okay";
+};
+
+&adc1 {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+    
+    /* Soil moisture ADC channel */
+    channel@0 {
+        reg = <0>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+    
+    /* Light level ADC channel */
+    channel@1 {
+        reg = <1>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+    
+    /* Air movement ADC channel */
+    channel@2 {
+        reg = <2>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
+};
+
+/* Enable flash for storage */
+&flash0 {
+    status = "okay";
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+        
+        /* Storage partition for NVS */
+        storage_partition: partition@1a0000 {
+            label = "storage";
+            reg = <0x1a0000 0x20000>;
+        };
+    };
+};
