@@ -1,0 +1,135 @@
+/*
+ * nRF52840 DK board overlay for Grow plant monitor
+ */
+
+/ {
+    chosen {
+        zephyr,console = &uart0;
+        zephyr,shell-uart = &uart0;
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+        zephyr,code-partition = &slot0_partition;
+    };
+    
+    /* DHT22 Sensor */
+    dht22: dht22 {
+        compatible = "aosong,dht";
+        status = "okay";
+        dio-gpios = <&gpio0 13 GPIO_ACTIVE_HIGH>;
+        dht22;
+    };
+    
+    /* Soil Moisture Sensor */
+    soil_moisture_sensor: soil_moisture_sensor {
+        compatible = "voltage-divider";
+        io-channels = <&adc 0>;
+        status = "okay";
+    };
+    
+    /* Light Sensor */
+    light_sensor: light_sensor {
+        compatible = "voltage-divider";
+        io-channels = <&adc 1>;
+        status = "okay";
+    };
+    
+    /* Air Movement Sensor */
+    air_sensor: air_sensor {
+        compatible = "voltage-divider";
+        io-channels = <&adc 2>;
+        status = "okay";
+    };
+
+    leds {
+        compatible = "gpio-leds";
+        status_led: led_0 {
+            gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+            label = "Status LED";
+        };
+    };
+};
+
+&adc {
+    status = "okay";
+    #address-cells = <1>;
+    #size-cells = <0>;
+    
+    /* Soil moisture ADC channel */
+    channel@0 {
+        reg = <0>;
+        zephyr,gain = "ADC_GAIN_1_6";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,input-positive = <NRF_SAADC_AIN0>;
+        zephyr,resolution = <12>;
+    };
+    
+    /* Light level ADC channel */
+    channel@1 {
+        reg = <1>;
+        zephyr,gain = "ADC_GAIN_1_6";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,input-positive = <NRF_SAADC_AIN1>;
+        zephyr,resolution = <12>;
+    };
+    
+    /* Air movement ADC channel */
+    channel@2 {
+        reg = <2>;
+        zephyr,gain = "ADC_GAIN_1_6";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,input-positive = <NRF_SAADC_AIN2>;
+        zephyr,resolution = <12>;
+    };
+};
+
+&flash0 {
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+        
+        boot_partition: partition@0 {
+            label = "mcuboot";
+            reg = <0x00000000 0x00010000>;
+        };
+        slot0_partition: partition@10000 {
+            label = "image-0";
+            reg = <0x00010000 0x00080000>;
+        };
+        slot1_partition: partition@90000 {
+            label = "image-1";
+            reg = <0x00090000 0x00080000>;
+        };
+        storage_partition: partition@110000 {
+            label = "storage";
+            reg = <0x00110000 0x00008000>;
+        };
+        tflite_partition: partition@118000 {
+            label = "tflite";
+            reg = <0x00118000 0x00020000>;
+        };
+    };
+};
+
+&gpio0 {
+    status = "okay";
+};
+
+&uart0 {
+    status = "okay";
+    current-speed = <115200>;
+    tx-pin = <6>;
+    rx-pin = <8>;
+    rts-pin = <5>;
+    cts-pin = <7>;
+};
+
+&i2c0 {
+    compatible = "nordic,nrf-twi";
+    status = "okay";
+    sda-pin = <26>;
+    scl-pin = <27>;
+};
